@@ -1,0 +1,27 @@
+{
+    "env": {
+        "node": true,
+        "commonjs": true,
+        "es2021": true,
+        "jest": true
+    },
+    "extends": "airbnb-base",
+    "overrides": [
+    ],
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
+    "rules": {
+        // Indent with 4 spaces
+        "indent": ["error", 4],
+        "trailing-comma": "off",
+        "no-console": "off",
+        "import/no-extraneous-dependencies": "off",
+        "comma-dangle": "off",
+        "brace-style":  ["error", "stroustrup", { "allowSingleLine": true }],
+        "object-curly-newline": ["error", {
+            "ObjectPattern": { "multiline": true }
+        }]
+         
+    }
+}
