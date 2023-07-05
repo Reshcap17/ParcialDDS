@@ -1,0 +1,99 @@
+1- ./routes/vehiculos.js:
+const express = require ('express')
+const router = express.Router()
+const db = require('../sequelize-init')
+const {Op} = require('sequelize')
+
+router.get('/api/vehiculos', async function(req,res,next) {
+	const {marca, from, to, filtro, activo} = req.query
+	let where = {}	
+	if(filtro != undefined && filtro != ""){
+	where.propietario = {
+	[Op.like]: filtro + "%"}
+
+	if(activo != undefined && activo != "" && activo != "Todos")
+	{where.activo = activo === 'true'}
+
+	if(marca != undefined && marca != "" && marca != "Todas")
+	{where.marca = {[Op.like]:marca}}
+
+	if(from != undefined && from != "" && to != undefined && to != "")
+	{where.kilometros = {[Op.between]: [from, to]}
+
+	const Pagina = req.query.Pagina ?? 1
+	const TamañoPagina = 50
+	let vehiculos = await db.Vehiculo.findAndCountAll({
+	atributes:[],
+	order:[["",""],["",""]],
+	offside:(Pagina-1)*TamañaPagina,
+	limit: TamañoPagina,
+	where:where,
+	})
+	res.json(vehiculos.rows)
+})
+
+module.export = router
+
+2-Index:
+const vehiculosRouter = require('./routes/vehiculos.js')
+app.use(vehiculosRouter)
+
+3-Frontend, crear services/vehiculos.service.js
+
+import axios from 'axios'
+
+const urlResource = "http:localhost:3001//api/vehiculos/"
+
+async function Buscar(marca, kmDesde, kmHasta){
+	const response = await axios.get(`${urlResource}
+	/?marca=${marca}&from=${kmDesde}&to={kmHasta}`)
+	return response.data
+}
+export const vehiculosServices = { Buscar }
+
+4-Componentes
+import {vehiculosServices} from './services/vehiculos.service'
+
+const vehiculos () => {
+	useEffect(() => {
+	const listaInicial = async () =>{
+	try{const response = await vehiculosService.buscar('','','')
+	setLista(response)
+	}carch(err){
+	console.log('Error',err)
+	}
+},listadoInicial()
+},[])
+
+const [lista, setLista] = useState([])
+const {register, handlesumit} = useform()
+ const onSubmit = async (data) => {
+    try{
+      const{marca,kmDesde, kmHasta} = data
+      if((kmDesde && !kmHasta) || (!kmDesde && kmHasta)){
+        alert('Por favor, complete tanto kmDesde y kmHasta o dejelo vacios a ambos');
+        return;
+      }
+      if(kmDesde && kmHasta && (parseInt(kmDesde) > parseInt(kmHasta))){
+        alert('Verificar que kmDesde sea menor que km hasta')
+        return;
+      }
+      const response = await vehiculosService.Buscar(marca,kmDesde,kmHasta)
+      setLista(response)
+    }catch(err){
+      console.log('Error', err)
+    }
+  };
+/*const onSubmit = async (data) => {
+  try {
+    const {filtro, marca} = data
+    if (filtro.length >= 3 || filtro === '') {
+      const response = await vehiculosServices.Buscar(filtro, marca, activo)
+      setLista(response)
+    } else {
+      alert("El filtro debe tener al menos 3 caracteres");
+    }
+  } catch(err){
+    console.log('Error', err)
+  }
+}*/
